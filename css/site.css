@@ -1,0 +1,129 @@
+body {
+  margin: auto;
+  background-color: rgba(0, 0, 0, 0.05);
+  max-width: 1440px;
+}
+main {
+  background-color: white;
+  padding-top: 1px;
+}
+
+header {
+  background-color: rgb(8, 82, 17);
+  font-size: 0.7rem;
+  text-align: right;
+  padding: 0.5rem;
+}
+nav a {
+  text-decoration: none;
+  color: white;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+nav a:hover {
+  text-decoration: underline;
+}
+footer {
+  background-color: rgb(8, 82, 17);
+  color: white;
+  font-size: 0.7rem;
+  text-align: center;
+  padding: 0.5rem;
+}
+#sign-in {
+  text-align: center;
+}
+#sign-in form {
+  display: grid;
+  max-width: 50%;
+  padding-left: 15%;
+  padding-right: 15%;
+}
+#sign-in input,
+button {
+  font-size: 1rem;
+}
+#sign-in button {
+  font-size: 0.75rem;
+  padding: 0.25rem;
+  margin: 0.25rem 0;
+  /* I think this padding format is short for
+    padding-top/bot and padding-left/right */
+}
+
+@media screen and (max-width: 600px) {
+  html {
+    font-size: 10px;
+  }
+  p {
+    font-size: 12px;
+  }
+}
+
+@media screen and (min-width: 601px) and (max-width: 767px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+@media screen and (min-width: 768px) and (max-width: 991px) {
+  html {
+    font-size: 20px;
+  }
+}
+
+@media screen and (min-width: 992px) and (max-width: 1199px) {
+  html {
+    font-size: 24px;
+  }
+}
+
+@media screen and (min-width: 1200px) {
+  html {
+    font-size: 28px;
+  }
+}
+@media print {
+  *,
+  *::before,
+  *::after {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  @page {
+    margin: 1in;
+    size: letter portrait;
+  }
+  html {
+    font-size: 15px;
+  }
+  h1 {
+    font-size: 2rem;
+  }
+  h2 {
+    font-size: 1.25rem;
+  }
+
+  a {
+    text-decoration: none;
+  }
+  a[href]::after {
+    content: " (" attr(href) ")";
+  }
+  header,
+  footer {
+    display: none;
+  }
+  .one-px-padding-top {
+    display: grid;
+    grid-template-columns: 1;
+    grid-template-rows: 2;
+    justify-items: center;
+  }
+  #work-item-img {
+    max-height: 300px;
+  }
+}

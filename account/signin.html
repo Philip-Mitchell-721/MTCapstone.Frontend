@@ -5,16 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MtgCapstone</title>
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="/css/site.css" />
   </head>
-  <header>
-    <nav>
-      <a href="../">index</a>
-      <a href="/account/register.html">register</a>
-      <a href="/account/signin.html">signin</a>
-      <a href="/account/forgotpassword.html">forgot password</a>
-    </nav>
-  </header>
+
   <body>
-    <h1>Sign In</h1>
+    <header>
+      <nav>
+        <a href="../">index</a>
+        <a href="/account/register.html">register</a>
+        <a href="/account/signin.html">signin</a>
+      </nav>
+    </header>
+    <main>
+      <div id="sign-in">
+        <h1>Sign In</h1>
+        <form action="">
+          <label for="username">Username: </label>
+          <input id="username" name="username" type="text" required />
+          <label for="password">Password: </label>
+          <input id="password" name="password" type="text" required />
+          <button id="submit" type="submit">Sign in</button>
+        </form>
+        <a href="/account/forgotpassword.html">forgot password</a>
+      </div>
+    </main>
+    <footer>&copy; <span id="copyright-year">2023</span> MTG Capstone.</footer>
   </body>
 </html>
