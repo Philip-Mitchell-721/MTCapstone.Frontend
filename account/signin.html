@@ -23,12 +23,19 @@
           <label for="username">Username: </label>
           <input id="username" name="username" type="text" required />
           <label for="password">Password: </label>
-          <input id="password" name="password" type="password" required />
+          <input id="password" class="password" name="password" type="password" required />
+          <div>
+            <input id="checkbox" type="checkbox" onclick="app.showPassword()" />
+            <label for="checkbox">
+              <span style="font-size: 0.7rem">Show Password</span>
+            </label>
+          </div>
           <button id="sign-in-button" type="submit">Sign in</button>
         </form>
         <a href="/account/forgotpassword.html">Forgot Password?</a>
         <a href="/account/register.html">Register</a>
       </div>
+      <script src="/js/app.js"></script>
     </main>
     <footer>&copy; <span id="copyright-year">2023</span> MTG Capstone.</footer>
   </body>
