@@ -23,6 +23,15 @@ nav a {
 nav a:hover {
   text-decoration: underline;
 }
+input {
+  font-size: 1rem;
+}
+button {
+  font-size: 0.75rem;
+  padding: 0.25rem;
+  margin: 0.25rem 0;
+}
+
 footer {
   background-color: rgb(8, 82, 17);
   color: white;
@@ -30,25 +39,29 @@ footer {
   text-align: center;
   padding: 0.5rem;
 }
-#sign-in {
-  text-align: center;
-}
-#sign-in form {
+#sign-in,
+#register,
+#forgot-password {
   display: grid;
-  max-width: 50%;
-  padding-left: 15%;
-  padding-right: 15%;
+  justify-items: center;
+  padding-bottom: 5%;
 }
-#sign-in input,
-button {
-  font-size: 1rem;
+#sign-in form,
+#register form,
+#forgot-password form {
+  display: grid;
 }
-#sign-in button {
+#sign-in a {
+  text-decoration: none;
+  color: rgb(74, 74, 74);
   font-size: 0.75rem;
-  padding: 0.25rem;
-  margin: 0.25rem 0;
-  /* I think this padding format is short for
-    padding-top/bot and padding-left/right */
+}
+#sign-in a:hover {
+  text-decoration: underline;
+}
+#sign-in label,
+#register label {
+  padding-top: 0.3rem;
 }
 
 @media screen and (max-width: 600px) {
