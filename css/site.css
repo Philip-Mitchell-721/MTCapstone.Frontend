@@ -6,11 +6,12 @@ body {
 main {
   background-color: white;
   padding-top: 1px;
+  padding-bottom: 1px;
+  min-height: 100vh;
 }
 
 header {
   background-color: rgb(8, 82, 17);
-  font-size: 0.7rem;
   text-align: right;
   padding: 0.5rem;
 }
@@ -66,10 +67,7 @@ footer {
 
 @media screen and (max-width: 600px) {
   html {
-    font-size: 10px;
-  }
-  p {
-    font-size: 12px;
+    font-size: 16px;
   }
 }
 
@@ -83,17 +81,26 @@ footer {
   html {
     font-size: 20px;
   }
+  header{
+    font-size: .9rem;
+  }
 }
 
 @media screen and (min-width: 992px) and (max-width: 1199px) {
   html {
     font-size: 24px;
   }
+  header{
+    font-size: .8rem;
+  }
 }
 
 @media screen and (min-width: 1200px) {
   html {
     font-size: 28px;
+  }
+  header{
+    font-size: .7rem;
   }
 }
 @media print {
