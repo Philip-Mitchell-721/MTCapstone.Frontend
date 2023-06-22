@@ -4,19 +4,8 @@
 
   app.registerPage = async () => {
     wireRegisterForm();
-
-    const requestDto = {
-      userName: "Zidantur1",
-      email: "zidantur1@example.com",
-      password: "7890&*()uiopUIOP",
-      confirmPassword: "7890&*()uiopUIOP",
-    };
-    const response = await apiFetch(
-      "Authentication/register",
-      "POST",
-      requestDto
-    );
   };
+  // TODO: add appropriate startups for each page.
 
   function wireRegisterForm() {
     const form = document.querySelector("#register form");
@@ -33,37 +22,43 @@
     requestDto.password = form.querySelector("#password").value;
     requestDto.confirmPassword = form.querySelector("#confirm-password").value;
 
-    const response = await apiFetch(
+    const response = await apiFetchAsync(
       "Authentication/register",
       "POST",
       requestDto
     );
+    console.log(response);
     // if (response.success === true) {
     //   location.href = "../";
     // }
   }
-  async function apiFetch(route, httpMethod, data) {
+  async function apiFetchAsync(route, httpMethod, data) {
     const url = "https://localhost:7277/api/" + route;
     try {
       const rawResponse = await fetch(url, {
         method: `${httpMethod}`, // *GET, POST, PUT, DELETE, etc.
-        // mode: "cors", // no-cors, *cors, same-origin
-        // cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
-        // credentials: "same-origin", // include, *same-origin, omit
+        mode: "cors", // no-cors, *cors, same-origin
         headers: {
           "Content-Type": "application/json",
           "Access-Control-Allow-Headers": "*",
           Accept: "application/json",
+          //TODO: get accessToken
+          Authorization: `Bearer ${(accessToken = "")}`,
         },
-        // redirect: "follow", // manual, *follow, error
-        // referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
         body: JSON.stringify(data), // body data type must match "Content-Type" header
       });
+      // TODO: write out piece to get accessToken from localStorage and
+      // check to see if it is still valid (expiration).  Handle with refresh
+      // if needed, then attach to request.
 
-      const response = await response.json();
-      console.log(response);
+      // TODO: look up redirect urls with query params
+      // TODO: store the response from get personal decks in sessionStorage,
+      //       then when adding/removing cards add them to the cache in
+      //       addition to fetching
+      // rawResponse.
+
+      const response = await rawResponse.json();
       return response;
-
     } catch (error) {
       console.log(error);
     }
