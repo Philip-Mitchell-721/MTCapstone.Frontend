@@ -15,6 +15,9 @@ header {
   text-align: right;
   padding: 0.5rem;
 }
+nav {
+  color: white;
+}
 nav a {
   text-decoration: none;
   color: white;
@@ -63,6 +66,14 @@ footer {
 #sign-in label,
 #register label {
   padding-top: 0.3rem;
+}
+.error-text {
+  text-align: center;
+  color: white;
+  background-color: rgb(185, 81, 81);
+  border: 2px solid black;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 @media screen and (max-width: 600px) {

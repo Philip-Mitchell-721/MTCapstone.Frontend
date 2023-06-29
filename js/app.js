@@ -2,14 +2,22 @@
   "use strict";
   app.showPassword = showPassword;
 
-  app.index = async () => {};
+  app.index = async () => {
+    navBarStatus();
+  };
 
   app.signinPage = async () => {
     wireSigninForm();
+    navBarStatus();
   };
 
   app.registerPage = async () => {
     wireRegisterForm();
+    navBarStatus();
+  };
+
+  app.personalPage = async () => {
+    navBarStatus();
   };
   // TODO: add appropriate startups for each page.
 
@@ -42,27 +50,86 @@
 
   function wireSigninForm() {
     const form = document.querySelector("#sign-in form");
-    // const button = document.getElementById("register-button");
-    // button.addEventListener("click", submitRegisterForm);
-    console.log(form);
     form.onsubmit = submitSigninForm;
   }
   async function submitSigninForm(e) {
     e.preventDefault();
     const form = document.querySelector("#sign-in form");
+    const button = form.querySelector("button");
+
     const requestDto = {};
     requestDto.userName = form.querySelector("#username").value;
     requestDto.password = form.querySelector("#password").value;
-    console.log(requestDto);
+    button.disabled = true;
+    // debugger;
+    const response = await apiFetchAsync(
+      "Authentication/login",
+      "POST",
+      requestDto,
+      false
+    );
+    button.disabled = false;
 
-    // const response = await apiFetchAsync(
-    //   "Authentication/login",
-    //   "POST",
-    //   requestDto
-    // );
-    // console.log(response);
+    //TODO: change this to check the body of my api response for the statuscodes.
+    //apiFetchAsync is already returning the json'd response.
+    if (!response) {
+      const div = errorDiv();
+      form.appendChild(div);
+      button.addEventListener("click", () => {
+        div.remove();
+      });
+      return;
+    }
+    if (response?.success) {
+      //const names = Object.getOwnPropertyNames(tokens);
+      storeTokens(response.value);
+      location.href = "../";
+      return;
+    }
+
+    // Add checks for other possible outcomes like 400, 403, 404, 500
+    const errorsDiv = errorDiv(response.errors);
+    form.appendChild(errorsDiv);
+    button.addEventListener("click", () => {
+      errorsDiv.remove();
+    });
   }
+  function navBarStatus() {
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) {
+      return;
+    }
+    const payLoad = parseJwt(accessToken);
 
+    const header = document.querySelector("header");
+    const oldNav = header.querySelector("nav");
+
+    const nav = document.createElement("nav");
+    const hello = document.createElement("span");
+    hello.innerText = `Hello, ${payLoad.name}!`;
+    nav.appendChild(hello);
+    const home = document.createElement("a");
+    home.innerText = "home";
+    home.href = "../";
+    nav.appendChild(home);
+    const personal = document.createElement("a");
+    personal.innerText = "my decks";
+    personal.href = "../decks/personal.html";
+    nav.appendChild(personal);
+    const logOut = document.createElement("a");
+    logOut.innerText = "sign out";
+    logOut.href = "../";
+
+    nav.appendChild(logOut);
+
+    logOut.onclick = () => {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+    };
+
+    header.removeChild(oldNav);
+    header.appendChild(nav);
+  }
   async function apiFetchAsync(route, httpMethod, data, needsAuth = true) {
     const url = "https://localhost:7277/api/" + route;
 
@@ -88,24 +155,24 @@
     const request = new Request(url, myOptions);
 
     try {
-      // TODO: write out piece to get accessToken from localStorage and
-      // check to see if it is still valid (expiration).  Handle with refresh
-      // if needed, then attach to request.
-      // TODO: look up redirect urls with query params
-      // TODO: store the response from get personal decks in sessionStorage,
-      //       then when adding/removing cards add them to the cache in
-      //       addition to fetching
-      // rawResponse.
-      const rawResponse = await fetch(request);
-      if (rawResponse.StatusCode == 401) {
-        refreshTokensAsync();
-        apiFetchAsync(route, httpMethod, data, needsAuth);
+      let rawResponse = await fetch(request);
+      if (needsAuth && rawResponse.status == 401) {
+        await refreshTokensAsync();
+        rawResponse = await apiFetchAsync(route, httpMethod, data, needsAuth);
       }
-      const response = await rawResponse.json();
+
+      const response = await rawResponse?.json();
       return response;
     } catch (error) {
-      console.log(error);
+      //console.log(error);
+      return null;
+      //TODO: figure out what should return after the error.
     }
+
+    // ASK: Should I return the rawResponse like above?  That way,
+    // I have access to the response info like statuscodes.
+    // const response = await rawResponse.json();
+    // return response;
   }
 
   async function refreshTokensAsync() {
@@ -116,29 +183,56 @@
       oldTokens,
       false
     );
-    if (response.ok) {
-      const newTokens = response.json();
-      storeTokens(newTokens.value);
+    if (response.success) {
+      storeTokens(response.value);
     } else {
       goToSignIn();
     }
   }
 
+  function parseJwt(token) {
+    var base64Url = token.split(".")[1];
+    var base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    var jsonPayload = decodeURIComponent(
+      window
+        .atob(base64)
+        .split("")
+        .map(function (c) {
+          return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+        })
+        .join("")
+    );
+
+    return JSON.parse(jsonPayload);
+  }
+
   function getTokens() {
-    const tokens = localStorage.getItem("tokens");
-    if (!tokens) {
+    const accessToken = localStorage.getItem("accessToken");
+    const refreshToken = localStorage.getItem("refreshToken");
+    if (!accessToken || !refreshToken) {
       goToSignIn();
     }
 
-    return tokens;
+    return {
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    };
   }
-
+  function errorDiv(error) {
+    const newDiv = document.createElement("div");
+    const p = document.createElement("p");
+    p.innerText = error ?? "Network connection error.";
+    newDiv.appendChild(p);
+    newDiv.classList.add("error-text");
+    return newDiv;
+  }
   function goToSignIn() {
     location.href = "/account/signin.html";
   }
 
   function storeTokens(tokens) {
-    localStorage.set("tokens", tokens);
+    localStorage.setItem("accessToken", tokens.accessToken);
+    localStorage.setItem("refreshToken", tokens.refreshToken);
   }
 
   function showPassword() {
