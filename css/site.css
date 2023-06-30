@@ -45,7 +45,8 @@ footer {
 }
 #sign-in,
 #register,
-#forgot-password {
+#forgot-password,
+#confirm-email {
   display: grid;
   justify-items: center;
   padding-bottom: 5%;

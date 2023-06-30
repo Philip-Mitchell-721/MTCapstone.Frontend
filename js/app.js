@@ -1,23 +1,25 @@
 (function (app) {
   "use strict";
   app.showPassword = showPassword;
+  app.email = {};
+  //functions that run on every page
+  navBarStatus();
+  setCopyrightDate();
 
-  app.index = async () => {
-    navBarStatus();
-  };
+  app.index = async () => {};
 
   app.signinPage = async () => {
     wireSigninForm();
-    navBarStatus();
   };
 
   app.registerPage = async () => {
     wireRegisterForm();
-    navBarStatus();
   };
 
-  app.personalPage = async () => {
-    navBarStatus();
+  app.personalPage = async () => {};
+
+  app.confirmEmailPage = () => {
+    confirmEmailPageSetup();
   };
   // TODO: add appropriate startups for each page.
 
@@ -31,21 +33,42 @@
   async function submitRegisterForm(e) {
     e.preventDefault();
     const form = document.querySelector("#register form");
+    const button = form.querySelector("button");
+
     const requestDto = {};
     requestDto.userName = form.querySelector("#username").value;
     requestDto.email = form.querySelector("#email").value;
     requestDto.password = form.querySelector("#password").value;
     requestDto.confirmPassword = form.querySelector("#confirm-password").value;
-
+    button.disabled = true;
     const response = await apiFetchAsync(
       "Authentication/register",
       "POST",
-      requestDto
+      requestDto,
+      false
     );
-    console.log(response);
-    // if (response.success === true) {
-    //   location.href = "../";
-    // }
+    button.disabled = false;
+    if (!response) {
+      const div = errorDiv();
+      form.appendChild(div);
+      button.addEventListener("click", () => {
+        div.remove();
+      });
+      return;
+    }
+    if (response?.success) {
+      app.email = {
+        email: response.value.accessToken,
+      };
+      //Figure out what .value is from the api here.
+      location.href = "../account/confirmemail.html";
+      return;
+    }
+    const errorsDiv = errorDiv(response.errors);
+    form.appendChild(errorsDiv);
+    button.addEventListener("click", () => {
+      errorsDiv.remove();
+    });
   }
 
   function wireSigninForm() {
@@ -70,8 +93,6 @@
     );
     button.disabled = false;
 
-    //TODO: change this to check the body of my api response for the statuscodes.
-    //apiFetchAsync is already returning the json'd response.
     if (!response) {
       const div = errorDiv();
       form.appendChild(div);
@@ -105,26 +126,30 @@
     const oldNav = header.querySelector("nav");
 
     const nav = document.createElement("nav");
+
     const hello = document.createElement("span");
     hello.innerText = `Hello, ${payLoad.name}!`;
     nav.appendChild(hello);
+
     const home = document.createElement("a");
     home.innerText = "home";
     home.href = "../";
     nav.appendChild(home);
+
     const personal = document.createElement("a");
     personal.innerText = "my decks";
     personal.href = "../decks/personal.html";
     nav.appendChild(personal);
+
     const logOut = document.createElement("a");
     logOut.innerText = "sign out";
     logOut.href = "../";
-
     nav.appendChild(logOut);
 
     logOut.onclick = () => {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
+      location.href = "../";
     };
 
     header.removeChild(oldNav);
@@ -168,11 +193,6 @@
       return null;
       //TODO: figure out what should return after the error.
     }
-
-    // ASK: Should I return the rawResponse like above?  That way,
-    // I have access to the response info like statuscodes.
-    // const response = await rawResponse.json();
-    // return response;
   }
 
   async function refreshTokensAsync() {
@@ -218,16 +238,84 @@
       refreshToken: refreshToken,
     };
   }
-  function errorDiv(error) {
+  function errorDiv(errors) {
     const newDiv = document.createElement("div");
-    const p = document.createElement("p");
-    p.innerText = error ?? "Network connection error.";
-    newDiv.appendChild(p);
+    if (errors) {
+      errors.forEach((er) => {
+        const p = document.createElement("p");
+        p.innerText = er;
+        newDiv.appendChild(p);
+      });
+    } else {
+      const p = document.createElement("p");
+      p.innerText = "Network connection error.";
+      newDiv.appendChild(p);
+    }
     newDiv.classList.add("error-text");
     return newDiv;
   }
   function goToSignIn() {
     location.href = "/account/signin.html";
+  }
+  function confirmEmailPageSetup() {
+    const div = document.getElementById("confirm-email");
+    const button = div.querySelector("#confirm");
+
+    ////
+    //TODO: Remove this section once this is tested.
+    app.email.email =
+      app.email.email ||
+      '<a href="https://localhost:7277/authentication/confirm-email?email=meghan@gmail.com&token=CfDJ8CG1BlKyLk1CowHwsJVQe2XccakC5aA2yMM0tcwfBXxp8n7XZX7XAmaUQNNVxYvF3JbwSCw3TAYVfSdl4KbFpQgcor0kioKtrSJl29KeqEQDbFPfGFYFv85z9rhT3I8eN+HeJVtGuc9ceYwqw9jDpTRMLKlVX/nIHZ8qCMQAVJeu3+wWrQPggR0+vvPY6FfqnQ==" >Reset Password</a>';
+    console.log(app.email.email);
+    ////
+
+    if (app.email.email == undefined) {
+      div.appendChild(errorDiv(["No email token found."]));
+      button.disabled = true;
+      return;
+    }
+
+    button.onclick = submitEmailConfirmation;
+  }
+  async function submitEmailConfirmation(e) {
+    e.preventDefault();
+    const form = document.querySelector("form");
+    const button = form.querySelector("button");
+    const email = form.querySelector("#email");
+    const token = form.querySelector("#token");
+
+    const aContainer = document.createElement("div");
+    aContainer.innerHTML = app.email.email;
+    const a = aContainer.querySelector("a");
+    const params = new URL(a.href).searchParams;
+    email.value = params.get("email");
+    token.value = params.get("token");
+
+    const route = `authentication/confirm-email?email=${email.value}&token=${token.value}`;
+
+    button.disabled = true;
+    const response = await apiFetchAsync(route, "GET", {}, false);
+    button.disabled = false;
+
+    if (!response) {
+      const div = errorDiv();
+      form.appendChild(div);
+      button.addEventListener("click", () => {
+        div.remove();
+      });
+      return;
+    }
+    if (response?.success) {
+      button.innerText = "SUCCESS";
+      button.style.backgroundColor = "Green";
+      location.href = "../account/signin.html";
+      return;
+    }
+    const errorsDiv = errorDiv(response.errors);
+    form.appendChild(errorsDiv);
+    button.addEventListener("click", () => {
+      errorsDiv.remove();
+    });
   }
 
   function storeTokens(tokens) {
@@ -246,7 +334,8 @@
     });
   }
 
-  // TODO: wrap fetch in app.apiFetch that takes the values for fetch, attaches tokens,
-  // checks the response for auth, refreshes if needed, and reruns fetch.
-  // Then redirect to login if needed
+  function setCopyrightDate() {
+    document.getElementById("copyright-year").innerText =
+      new Date().getFullYear();
+  }
 })((window.app = window.app || {}));
