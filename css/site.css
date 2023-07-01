@@ -46,14 +46,17 @@ footer {
 #sign-in,
 #register,
 #forgot-password,
-#confirm-email {
+#confirm-email,
+#request-email {
   display: grid;
   justify-items: center;
   padding-bottom: 5%;
 }
 #sign-in form,
 #register form,
-#forgot-password form {
+#forgot-password form,
+#confirm-email form,
+#request-email form {
   display: grid;
 }
 #sign-in a {

@@ -21,6 +21,9 @@
   app.confirmEmailPage = () => {
     confirmEmailPageSetup();
   };
+  app.requestEmailConfirmationPage = () => {
+    requestEmailConfirmationPageSetup();
+  };
   // TODO: add appropriate startups for each page.
 
   function wireRegisterForm() {
@@ -57,9 +60,8 @@
       return;
     }
     if (response?.success) {
-      app.email = {
-        email: response.value.accessToken,
-      };
+      sessionStorage.setItem("email-token", response.value.accessToken);
+
       //Figure out what .value is from the api here.
       location.href = "../account/confirmemail.html";
       return;
@@ -84,7 +86,6 @@
     requestDto.userName = form.querySelector("#username").value;
     requestDto.password = form.querySelector("#password").value;
     button.disabled = true;
-    // debugger;
     const response = await apiFetchAsync(
       "Authentication/login",
       "POST",
@@ -157,6 +158,7 @@
   }
   async function apiFetchAsync(route, httpMethod, data, needsAuth = true) {
     const url = "https://localhost:7277/api/" + route;
+    const encodedURL = encodeURI(url);
 
     const myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
@@ -177,15 +179,19 @@
       myOptions.body = JSON.stringify(data);
     }
 
-    const request = new Request(url, myOptions);
+    const request = new Request(encodedURL, myOptions);
 
     try {
+      debugger;
       let rawResponse = await fetch(request);
       if (needsAuth && rawResponse.status == 401) {
         await refreshTokensAsync();
         rawResponse = await apiFetchAsync(route, httpMethod, data, needsAuth);
       }
-
+      //ASK: This returns the body of the response.  That body is null/undefined
+      // if the api didn't send anything in the HTTP response.  How should I check this
+      //after apifetchasync returns to the calling function?
+      // for instance, right now they are looking for response.success (or if the response is null)
       const response = await rawResponse?.json();
       return response;
     } catch (error) {
@@ -260,43 +266,50 @@
   function confirmEmailPageSetup() {
     const div = document.getElementById("confirm-email");
     const button = div.querySelector("#confirm");
-
+    const requestNewButton = div.querySelector("#request-email-button");
+    const token = sessionStorage.getItem("email-token");
     ////
     //TODO: Remove this section once this is tested.
-    app.email.email =
-      app.email.email ||
-      '<a href="https://localhost:7277/authentication/confirm-email?email=meghan@gmail.com&token=CfDJ8CG1BlKyLk1CowHwsJVQe2XccakC5aA2yMM0tcwfBXxp8n7XZX7XAmaUQNNVxYvF3JbwSCw3TAYVfSdl4KbFpQgcor0kioKtrSJl29KeqEQDbFPfGFYFv85z9rhT3I8eN+HeJVtGuc9ceYwqw9jDpTRMLKlVX/nIHZ8qCMQAVJeu3+wWrQPggR0+vvPY6FfqnQ==" >Reset Password</a>';
-    console.log(app.email.email);
+    // app.email.email = sessionStorage.getItem("email-token");
+    //   app.email.email ||
+    //   '<a href="https://localhost:7277/authentication/confirm-email?email=meghan@gmail.com&token=CfDJ8CG1BlKyLk1CowHwsJVQe2XccakC5aA2yMM0tcwfBXxp8n7XZX7XAmaUQNNVxYvF3JbwSCw3TAYVfSdl4KbFpQgcor0kioKtrSJl29KeqEQDbFPfGFYFv85z9rhT3I8eN+HeJVtGuc9ceYwqw9jDpTRMLKlVX/nIHZ8qCMQAVJeu3+wWrQPggR0+vvPY6FfqnQ==" >Reset Password</a>';
+    // console.log(app.email.email);
     ////
-
-    if (app.email.email == undefined) {
+    button.onclick = submitEmailConfirmation;
+    requestNewButton.onclick = (e) => {
+      e.preventDefault();
+      location.href = "../account/request-email-confirmation.html";
+    };
+    if (token == undefined) {
       div.appendChild(errorDiv(["No email token found."]));
       button.disabled = true;
       return;
     }
-
-    button.onclick = submitEmailConfirmation;
   }
   async function submitEmailConfirmation(e) {
     e.preventDefault();
     const form = document.querySelector("form");
     const button = form.querySelector("button");
-    const email = form.querySelector("#email");
-    const token = form.querySelector("#token");
-
+    // const emailToken = `<a href="https://localhost:7277/authentication/confirm-email?email=meghan@gmail.com&token=CfDJ8CG1BlKyLk1CowHwsJVQe2XccakC5aA2yMM0tcwfBXxp8n7XZX7XAmaUQNNVxYvF3JbwSCw3TAYVfSdl4KbFpQgcor0kioKtrSJl29KeqEQDbFPfGFYFv85z9rhT3I8eN+HeJVtGuc9ceYwqw9jDpTRMLKlVX/nIHZ8qCMQAVJeu3+wWrQPggR0+vvPY6FfqnQ==" >Reset Password</a>`
+    const emailToken = sessionStorage.getItem("email-token");
+    debugger;
     const aContainer = document.createElement("div");
-    aContainer.innerHTML = app.email.email;
+    aContainer.innerHTML = emailToken;
     const a = aContainer.querySelector("a");
-    const params = new URL(a.href).searchParams;
-    email.value = params.get("email");
-    token.value = params.get("token");
-
-    const route = `authentication/confirm-email?email=${email.value}&token=${token.value}`;
-
+    const url = new URL(a.href);
+    var params = new URLSearchParams(url.search);
+    const email = params.get("email");
+    const token = params.get("token").replaceAll(" ", "+");
+    const requestDto = {
+      email: email,
+      token: token,
+    };
+    const route = `authentication/confirm-email`;
+    // const route = `authentication/confirm-email?email=${email}&token=${token}`;
+    debugger;
     button.disabled = true;
-    const response = await apiFetchAsync(route, "GET", {}, false);
+    const response = await apiFetchAsync(route, "POST", requestDto, false);
     button.disabled = false;
-
     if (!response) {
       const div = errorDiv();
       form.appendChild(div);
@@ -308,7 +321,49 @@
     if (response?.success) {
       button.innerText = "SUCCESS";
       button.style.backgroundColor = "Green";
+      sessionStorage.removeItem("email-token");
       location.href = "../account/signin.html";
+      return;
+    }
+    const errorsDiv = errorDiv(response.errors);
+    form.appendChild(errorsDiv);
+    button.addEventListener("click", () => {
+      errorsDiv.remove();
+    });
+  }
+  async function requestEmailConfirmationPageSetup() {
+    const form = document.querySelector("#request-email form");
+    form.onsubmit = requestEmailConfirmation;
+  }
+  async function requestEmailConfirmation(e) {
+    e.preventDefault();
+
+    const form = document.querySelector("#request-email form");
+    const button = form.querySelector("button");
+
+    const requestDto = {};
+    requestDto.userName = form.querySelector("#username").value;
+    button.disabled = true;
+    const response = await apiFetchAsync(
+      //TODO:Check this endpoint route
+      "Authentication/confirm-email-request",
+      "POST",
+      requestDto,
+      false
+    );
+    button.disabled = false;
+    if (!response) {
+      const div = errorDiv();
+      form.appendChild(div);
+      button.addEventListener("click", () => {
+        div.remove();
+      });
+      return;
+    }
+    if (response?.success) {
+      sessionStorage.setItem("email-token", response.value.accessToken);
+
+      location.href = "../account/confirmemail.html";
       return;
     }
     const errorsDiv = errorDiv(response.errors);
