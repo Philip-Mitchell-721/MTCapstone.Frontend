@@ -5,13 +5,12 @@ body {
 }
 main {
   background-color: white;
-  padding-top: 1px;
-  padding-bottom: 1px;
+  padding: 1px 5%;
   min-height: 100vh;
 }
 
 header {
-  background-color: rgb(8, 82, 17);
+  background-color: rgb(21, 115, 71);
   text-align: right;
   padding: 0.5rem;
 }
@@ -27,7 +26,8 @@ nav a {
 nav a:hover {
   text-decoration: underline;
 }
-input {
+input,
+select {
   font-size: 1rem;
 }
 button {
@@ -47,7 +47,11 @@ footer {
 #register,
 #forgot-password,
 #confirm-email,
-#request-email {
+#request-email,
+.center-forms {
+  /* At some point, remove all of these ids and add .center-forms
+  to each of these form-containing divs
+   */
   display: grid;
   justify-items: center;
   padding-bottom: 5%;
@@ -56,7 +60,8 @@ footer {
 #register form,
 #forgot-password form,
 #confirm-email form,
-#request-email form {
+#request-email form,
+.center-forms form {
   display: grid;
 }
 #sign-in a {
@@ -79,6 +84,17 @@ footer {
   margin-top: 0;
   margin-bottom: 0;
 }
+.form-container {
+  display: flex;
+  flex-wrap: nowrap;
+}
+.personal-page-links {
+  text-decoration: none;
+  color: rgb(8, 82, 17);
+}
+a.personal-page-links:hover {
+  text-decoration: underline;
+}
 
 @media screen and (max-width: 600px) {
   html {
@@ -96,8 +112,8 @@ footer {
   html {
     font-size: 20px;
   }
-  header{
-    font-size: .9rem;
+  header {
+    font-size: 0.9rem;
   }
 }
 
@@ -105,8 +121,8 @@ footer {
   html {
     font-size: 24px;
   }
-  header{
-    font-size: .8rem;
+  header {
+    font-size: 0.8rem;
   }
 }
 
@@ -114,8 +130,8 @@ footer {
   html {
     font-size: 28px;
   }
-  header{
-    font-size: .7rem;
+  header {
+    font-size: 0.7rem;
   }
 }
 @media print {
