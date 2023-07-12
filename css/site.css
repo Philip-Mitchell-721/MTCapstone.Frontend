@@ -43,37 +43,29 @@ footer {
   text-align: center;
   padding: 0.5rem;
 }
-#sign-in,
-#register,
-#forgot-password,
-#confirm-email,
-#request-email,
+
 .center-forms {
-  /* At some point, remove all of these ids and add .center-forms
+  /* TODO: At some point, remove all of these ids and add .center-forms
   to each of these form-containing divs
    */
   display: grid;
   justify-items: center;
   padding-bottom: 5%;
 }
-#sign-in form,
-#register form,
-#forgot-password form,
-#confirm-email form,
-#request-email form,
+
 .center-forms form {
   display: grid;
 }
-#sign-in a {
+.center-forms a {
   text-decoration: none;
   color: rgb(74, 74, 74);
   font-size: 0.75rem;
 }
-#sign-in a:hover {
+.center-forms a:hover {
   text-decoration: underline;
 }
-#sign-in label,
-#register label {
+
+.center-forms label {
   padding-top: 0.3rem;
 }
 .error-text {
@@ -81,8 +73,12 @@ footer {
   color: white;
   background-color: rgb(185, 81, 81);
   border: 2px solid black;
-  margin-top: 0;
-  margin-bottom: 0;
+  margin: 0;
+  /* max-width: 500px; */
+  display: inline-block;
+}
+.error-text p {
+  margin: 10px 20px;
 }
 .form-container {
   display: flex;

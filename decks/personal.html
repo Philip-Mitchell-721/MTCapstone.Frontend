@@ -17,7 +17,7 @@
         <a href="../">home</a>
         <a href="/account/register.html">register</a>
         <a href="/account/signin.html">sign in</a>
-      </nav>
+      </nav>  
     </header>
     <main>
       <h1>My Decks</h1>
@@ -32,22 +32,15 @@
         </button>
       </div>
 
-      <table class="deck-table table table-hover">
-        <thead>
+      <table class="deck-table table table-striped">
+        <thead hidden>
           <tr>
             <th>Deck Name</th>
             <th>Format</th>
             <th>Visibility</th>
           </tr>
         </thead>
-        <tbody>
-          <tr>
-            <td>John</td>
-            <td>Doe</td>
-            <td>john@example.com</td>
-          </tr>
-          
-        </tbody>
+        <tbody></tbody>
       </table>
 
       <!-- The Modal -->
@@ -60,7 +53,7 @@
             </div>
             <!-- Modal body -->
             <div class="modal-body">
-              <form class="add-deck" action="">
+              <form id="add-deck-form" class="add-deck" action="">
                 <div class="mb-3">
                   <label class="form-label" for="name">Deck Name: </label>
                   <input
@@ -89,7 +82,8 @@
 
             <!-- Modal footer -->
             <div class="modal-footer">
-              <button id="create-deck" class="btn btn-success">
+              <!-- <div class="btn-group"> -->
+              <button id="create-deck" form="add-deck-form" class="btn btn-success" type="submit">
                 Create Deck
               </button>
               <button
@@ -100,6 +94,7 @@
               >
                 Cancel
               </button>
+              <!-- </div> -->
             </div>
           </div>
         </div>

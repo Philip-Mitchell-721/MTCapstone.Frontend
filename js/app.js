@@ -198,7 +198,6 @@
     };
     const route = `authentication/confirm-email`;
     // const route = `authentication/confirm-email?email=${encodeURIComponent(email)}&token=${encodeURIComponent(token)}`;
-    debugger;
     button.disabled = true;
     const response = await apiFetchAsync(route, "POST", requestDto, false);
     button.disabled = false;
@@ -254,56 +253,39 @@
 
   function personalPageSetup() {
     // TODO: uncomment getFormatOptions
-    // getFormatOptions()
-    document
-      .getElementById("create-deck")
-      .addEventListener("click", addDeckAsync);
+    // getFormatOptions();
+    document.getElementById("add-deck-form").onsubmit = addDeckAsync;
+    // document
+    //   .getElementById("create-deck")
+    //   .addEventListener("click", addDeckAsync);
     document.getElementById("add-deck-cancel").addEventListener("click", () => {
       document.querySelector("form.add-deck").reset();
     });
 
     getPersonalDecks();
+    getDeckById(10);
   }
 
   /////////////////////////////////////////////////////////////////////////////////
   async function getPersonalDecks() {
     const table = document.querySelector(".deck-table");
+    const tableHead = table.querySelector("thead");
     const tableBody = table.querySelector("tbody");
 
-    // TODO: uncomment this AND set the needs Auth param to true
-    // const response = await apiFetchAsync("Decks/Personal", "GET", {}, false);
-    const response = {
-      success: true,
-      value: [
-        {
-          id: 1,
-          name: "Yidris Rocks",
-          format: "commander",
-          isPrivate: true,
-        },
-        {
-          id: 2,
-          name: "Xenagos",
-          format: "commander",
-          isPrivate: false,
-        },
-        {
-          id: 3,
-          name: "Gitrog",
-          format: "commander",
-          isPrivate: true,
-        },
-      ],
-    };
+    const response = await apiFetchAsync("Decks/Personal", "GET", {}, true);
 
     if (!response?.success) {
       const errorsDiv = errorDiv(response?.errors);
       document.querySelector("main").append(errorsDiv);
       return;
     }
+    if (response.value.length === 0) {
+      return;
+    }
+    tableHead.removeAttribute("hidden");
 
     response.value.forEach((deck) => {
-      const row = tableBody.insertRow();
+      const row = tableBody.insertRow(0);
 
       const name = row.insertCell(0);
       const a = document.createElement("a");
@@ -366,6 +348,7 @@
     const format = form.querySelector("#format")?.value ?? "commander";
     const button = document.getElementById("create-deck");
     const addDeckCancelButton = document.getElementById("add-deck-cancel");
+    debugger;
 
     const requestDto = {
       name: deckName,
@@ -373,11 +356,9 @@
       format: format,
       primer: "",
     };
-
     button.disabled = true;
     const response = await apiFetchAsync("Decks", "POST", requestDto, true);
     button.disabled = false;
-
     if (!response?.success) {
       const errorsDiv = errorDiv(response?.errors);
       form.appendChild(errorsDiv);
@@ -389,20 +370,21 @@
       });
       return;
     }
-    // TODO: Test this function.
     // TODO: When response is successfull, set location to the new deck.
-    location.href = `../decks/${response.value.Id}`;
+    // location.href = `../decks/${response.value.Id}`;
+    // location.reload();
   }
 
   function navBarStatus() {
+    const header = document.querySelector("header");
+    const oldNav = header.querySelector("nav");
+    
     const accessToken = localStorage.getItem("accessToken");
     if (!accessToken) {
       return;
     }
     const payLoad = parseJwt(accessToken);
 
-    const header = document.querySelector("header");
-    const oldNav = header.querySelector("nav");
 
     const nav = document.createElement("nav");
 
@@ -478,14 +460,20 @@
       refreshToken: refreshToken,
     };
   }
-  function errorDiv(errors = ["Network connection error."]) {
+  // function errorDiv(errors = ["Network connection error."]) {
+  function errorDiv(errors = [""]) {
     const newDiv = document.createElement("div");
     errors.forEach((er) => {
+      if (er === "Failed to fetch") {
+        er = "Network connection error.";
+      }
       const p = document.createElement("p");
       p.innerText = er;
       newDiv.appendChild(p);
     });
 
+    newDiv.classList.add("alert");
+    // newDiv.classList.add("alert-danger");
     newDiv.classList.add("error-text");
     return newDiv;
   }
