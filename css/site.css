@@ -45,9 +45,6 @@ footer {
 }
 
 .center-forms {
-  /* TODO: At some point, remove all of these ids and add .center-forms
-  to each of these form-containing divs
-   */
   display: grid;
   justify-items: center;
   padding-bottom: 5%;
@@ -90,6 +87,9 @@ footer {
 }
 a.personal-page-links:hover {
   text-decoration: underline;
+}
+.offcanvas-body a {
+  font-size: .8rem;
 }
 
 @media screen and (max-width: 600px) {
