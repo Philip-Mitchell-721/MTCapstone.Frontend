@@ -67,11 +67,11 @@ footer {
 }
 .error-text {
   text-align: center;
-  color: white;
-  background-color: rgb(185, 81, 81);
+  color: black;
+  background-color: #ffbaba;
   border: 2px solid black;
   margin: 0;
-  /* max-width: 500px; */
+  max-width: 500px;
   display: inline-block;
 }
 .error-text p {
@@ -89,7 +89,7 @@ a.personal-page-links:hover {
   text-decoration: underline;
 }
 .offcanvas-body a {
-  font-size: .8rem;
+  font-size: 0.8rem;
 }
 
 @media screen and (max-width: 600px) {

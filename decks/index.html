@@ -20,22 +20,37 @@
       </nav>
     </header>
     <main>
-      <h1>Individual Deck</h1>
-      <!-- Button to open the offcanvas sidebar -->
-      <button
-        class="btn btn-success"
-        type="button"
-        data-bs-toggle="offcanvas"
-        data-bs-target="#demo"
-      >
-        Add Cards
-      </button>
+      <div class="container">
+        <h1>Individual Deck</h1>
+        <div class="btn-group deck-alter-group" hidden>
+          <!-- Button to open the offcanvas sidebar -->
+          <button
+            class="btn btn-success"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#demo"
+          >
+            Add Cards
+          </button>
+          <button type="button" class="btn btn-success">Edit Deck</button>
+          <button
+            type="button"
+            class="btn btn-warning"
+            data-bs-toggle="modal"
+            data-bs-target="#myModal"
+          >
+            Delete Deck
+          </button>
+        </div>
+      </div>
 
       <!-- Offcanvas Sidebar -->
       <div class="offcanvas offcanvas-start" id="demo">
         <div class="offcanvas-header">
           <form id="add-card-form" class="form" action="">
-            <label for="card-search" class="visually-hidden">Search for card: </label>
+            <label for="card-search" class="visually-hidden"
+              >Search for card:
+            </label>
             <input
               type="search"
               class="form-control"
@@ -49,6 +64,37 @@
         </div>
         <div class="offcanvas-body">
           <div class="list-group results-list"></div>
+        </div>
+      </div>
+      <!-- The Modal -->
+      <div class="modal fade" id="myModal">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+              <h4 class="modal-title">Delete Deck</h4>
+            </div>
+            <!-- Modal body -->
+            <div class="modal-body">
+              <p>Are you sure you want to delete this deck?</p>
+            </div>
+
+            <!-- Modal footer -->
+            <div class="modal-footer">
+              <!-- <div class="btn-group"> -->
+              <button class="delete-deck btn btn-danger" type="submit">
+                Delete Deck
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Cancel
+              </button>
+              <!-- </div> -->
+            </div>
+          </div>
         </div>
       </div>
     </main>

@@ -276,10 +276,14 @@
 
   async function deckPageSetup() {
     cardSearchSetup();
+    deleteDeckButtonSetup();
     await getDeckAsync();
+    alterDeckButtonGroup();
     displayDeck();
   }
-
+  function deleteDeckButtonSetup() {
+    document.querySelector("button.delete-deck").onclick = deleteDeckAsync;
+  }
   function cardSearchSetup() {
     document
       .querySelector("#card-search")
@@ -298,7 +302,9 @@
     const cardNameToAdd = e.target.innerText;
     const card = await getCardFromscryfallAsync(cardNameToAdd);
     if (!card) {
-      // TODO: handle when card is not found from scryfall
+      document
+        .querySelector(".offcanvas-body")
+        .prepend(errorDiv("Scryfall Database Issue, sorry."));
       return;
     }
 
@@ -311,8 +317,38 @@
       requestDto,
       true
     );
+    if (!response.success) {
+      document
+        .querySelector(".offcanvas-body")
+        .prepend(errorDiv(response.errors));
+      return;
+    }
     console.log(response);
+    const div = document.querySelector("div.cards");
+    const newlyAddedCard = response.value;
+    const img = document.createElement("img");
+    img.src = newlyAddedCard.imageUris.normal;
+    img.alt = newlyAddedCard.name;
+    div.prepend(img);
+
     //TODO: Make addCard update the page upon successful response.
+  }
+  async function deleteDeckAsync() {
+    console.log(app.deck.id);
+    const button = document.querySelector("button.delete-deck");
+    button.disable = true;
+    const response = await apiFetchAsync(
+      `decks/${app.deck.id}`,
+      "DELETE",
+      {},
+      true
+    );
+    button.disable = false;
+    if (!response?.success) {
+      document.querySelector(".modal-body").append(errorDiv(response?.errors));
+      return;
+    }
+    location.href = `../decks/personal.html`;
   }
 
   async function getCardFromscryfallAsync(cardNameToAdd) {
@@ -381,12 +417,30 @@
     }
 
     document.querySelector("h1").innerText = app.deck.name;
-    const categories = getDeckCategories();
+    sortAndOrderDeckCards();
+    // TODO: remove getDeckCards(), this is jsut to get and display cards for testing.
+    getDeckCards();
   }
 
-  async function getDeckCategories() {
+  function sortAndOrderDeckCards() {
+    const categories = [];
+    app.deck.cards.forEach((card) => {
+      const superType = card.typeLine.split("—")[0];
+      const superTypesArray = superType.split(" ");
+      superTypesArray.forEach((type) => {
+        if (!categories.includes(type)) {
+          categories.push(type);
+        }
+      });
+    });
+    app.deck.cards.sort(function (a, b) {
+      return a.cmc - b.cmc;
+    });
+  }
+  async function getDeckCards() {
     const categories = [];
     const div = document.createElement("div");
+    div.classList.add("cards");
     app.deck.cards.forEach((card, index) => {
       //TODO: this is a test, change this to display cards.
       setTimeout(() => {
@@ -395,7 +449,7 @@
         img.src = card.imageUris.normal;
         img.alt = card.name;
         div.append(img);
-      }, index * 100);
+      }, index * 150);
     });
     document.querySelector("main").append(div);
   }
@@ -472,7 +526,13 @@
     if (isNaN(deckId)) {
       return;
     }
-    const response = await apiFetchAsync(`Decks/${deckId}`, "GET", {}, false);
+    const accessToken = localStorage.getItem("accessToken");
+    let response;
+    if (accessToken) {
+      response = await apiFetchAsync(`Decks/${deckId}`, "GET", {}, true);
+    } else {
+      response = await apiFetchAsync(`Decks/${deckId}`, "GET", {}, false);
+    }
     if (!response?.success) {
       const errorsDiv = errorDiv(response?.errors);
       document.querySelector("main").append(errorsDiv);
@@ -542,10 +602,18 @@
       return;
     }
     // TODO: When response is successfull, set location to the new deck.
-    // location.href = `../decks?id=${response.value.Id}`;
-    location.reload();
+    location.href = `../decks/index.html?id=${response.value.id}`;
   }
-
+  function alterDeckButtonGroup() {
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) {
+      return;
+    }
+    const payLoad = parseJwt(accessToken);
+    if (payLoad.sub == app.deck.ownerId) {
+      document.querySelector(".deck-alter-group").removeAttribute("hidden");
+    }
+  }
   function navBarStatus() {
     const header = document.querySelector("header");
     const oldNav = header.querySelector("nav");
@@ -645,6 +713,10 @@
     newDiv.classList.add("alert");
     // newDiv.classList.add("alert-danger");
     newDiv.classList.add("error-text");
+    document.querySelectorAll(".error-text").forEach((el) => el.remove());
+    setTimeout(() => {
+      document.querySelectorAll(".error-text").forEach((el) => el.remove());
+    }, 5000);
     return newDiv;
   }
   function goToSignIn() {
