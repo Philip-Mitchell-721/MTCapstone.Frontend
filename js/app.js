@@ -39,6 +39,8 @@
   /////////////////////////////////////////////////////////////////////////////////
 
   async function apiFetchAsync(route, httpMethod, data, needsAuth = true) {
+    document.querySelectorAll(".error-text").forEach((el) => el.remove());
+
     const url = "https://localhost:7277/api/" + route;
     const encodedURL = encodeURI(url);
     // ASK: Do I need to encode the URI like this if I'm using the encodeURIcomponents before calling apiFetchAsync?
@@ -64,7 +66,7 @@
 
     const request = new Request(encodedURL, myOptions);
 
-    // debugger;
+    debugger;
     let rawResponse;
     try {
       rawResponse = await fetch(request);
@@ -79,7 +81,7 @@
       await refreshTokensAsync();
       return await apiFetchAsync(route, httpMethod, data, needsAuth);
     }
-
+    rawResponse.hasbody;
     try {
       return await rawResponse.json();
     } catch (error) {
@@ -90,7 +92,13 @@
       // TODO: This isn't true, take some time to work through this and figure out how this SHOULD work.  There are
       // several asp httpresponse helper methods that don't return a body, and .json() will error.  That has
       // nothing to do with whether or not the api fetch was successful.
-      return { success: true };
+      if (rawResponse.ok) {
+        return { success: true };
+      }
+      if (rawResponse.status == 403) {
+        error = "You don't have rights to this deck.  GTFO lol";
+      }
+      return { success: false, errors: [error] };
     }
   }
 
@@ -261,12 +269,8 @@
   }
 
   function personalPageSetup() {
-    // TODO: uncomment getFormatOptions
     getFormatOptions();
     document.getElementById("add-deck-form").onsubmit = addDeckAsync;
-    // document
-    //   .getElementById("create-deck")
-    //   .addEventListener("click", addDeckAsync);
     document.getElementById("add-deck-cancel").addEventListener("click", () => {
       document.querySelector("form.add-deck").reset();
     });
@@ -275,14 +279,29 @@
   }
 
   async function deckPageSetup() {
-    cardSearchSetup();
-    deleteDeckButtonSetup();
     await getDeckAsync();
-    alterDeckButtonGroup();
+    alterDeckButtonGroupSetup();
     displayDeck();
   }
-  function deleteDeckButtonSetup() {
-    document.querySelector("button.delete-deck").onclick = deleteDeckAsync;
+
+  function alterDeckButtonGroupSetup() {
+    if (getUserId() == app.deck?.ownerId) {
+      cardSearchSetup();
+      document.querySelector("button.delete-deck").onclick = deleteDeckAsync;
+      editDeckFormSetup();
+
+      document.querySelector(".deck-alter-group").removeAttribute("hidden");
+    }
+  }
+  async function editDeckFormSetup() {
+    getFormatOptions();
+    document.querySelector("#name").value = app.deck.name;
+    if (app.deck.isPrivate) {
+      document.querySelector("#private").checked = true;
+    }
+    document.querySelector("#primer").value = app.deck.primer;
+
+    document.getElementById("edit-deck-form").onsubmit = editDeckAsync;
   }
   function cardSearchSetup() {
     document
@@ -336,19 +355,27 @@
   async function deleteDeckAsync() {
     console.log(app.deck.id);
     const button = document.querySelector("button.delete-deck");
+    let response;
+
     button.disable = true;
-    const response = await apiFetchAsync(
-      `decks/${app.deck.id}`,
-      "DELETE",
-      {},
-      true
-    );
+    // debugger;
+    response = await apiFetchAsync(`decks/${app.deck.id}`, "DELETE", {}, true);
     button.disable = false;
+
     if (!response?.success) {
       document.querySelector(".modal-body").append(errorDiv(response?.errors));
       return;
+    } else {
+      location.href = `../decks/personal.html`;
     }
-    location.href = `../decks/personal.html`;
+  }
+  function getUserId() {
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) {
+      return;
+    }
+    const payLoad = parseJwt(accessToken);
+    return payLoad.sub;
   }
 
   async function getCardFromscryfallAsync(cardNameToAdd) {
@@ -418,8 +445,7 @@
 
     document.querySelector("h1").innerText = app.deck.name;
     sortAndOrderDeckCards();
-    // TODO: remove getDeckCards(), this is jsut to get and display cards for testing.
-    getDeckCards();
+    displayDeckCards();
   }
 
   function sortAndOrderDeckCards() {
@@ -437,7 +463,7 @@
       return a.cmc - b.cmc;
     });
   }
-  async function getDeckCards() {
+  async function displayDeckCards() {
     const categories = [];
     const div = document.createElement("div");
     div.classList.add("cards");
@@ -554,11 +580,15 @@
         newSelect.name = "format";
         newSelect.id = "format";
         newSelect.classList.add("form-select");
+        //continue figuring out how to check app.deck.format for the select attribute
         names.forEach((name) => {
           const option = document.createElement("option");
           option.value = name;
           option.innerText = name;
-          if (name == "commander") {
+          if (
+            app.deck?.format == name ||
+            (!app.deck?.format && name == "commander")
+          ) {
             const selected = document.createAttribute("selected");
             option.setAttributeNode(selected);
           }
@@ -591,28 +621,41 @@
     const response = await apiFetchAsync("Decks", "POST", requestDto, true);
     button.disabled = false;
     if (!response?.success) {
-      const errorsDiv = errorDiv(response?.errors);
-      form.appendChild(errorsDiv);
-      button.addEventListener("click", () => {
-        errorsDiv.remove();
-      });
-      addDeckCancelButton.addEventListener("click", () => {
-        errorsDiv.remove();
-      });
+      form.appendChild(errorDiv(response?.errors));
       return;
     }
     // TODO: When response is successfull, set location to the new deck.
     location.href = `../decks/index.html?id=${response.value.id}`;
   }
-  function alterDeckButtonGroup() {
-    const accessToken = localStorage.getItem("accessToken");
-    if (!accessToken) {
+
+  async function editDeckAsync(e) {
+    e.preventDefault();
+    const form = document.querySelector(".edit-deck");
+    const deckName = form.querySelector("#name").value;
+    const isPrivate = form.querySelector("#private").checked;
+    const format = form.querySelector("#format").value;
+    const primer = form.querySelector("#primer").value;
+    const button = document.getElementById("edit-deck");
+
+    const requestDto = {
+      name: deckName,
+      isPrivate: isPrivate,
+      format: format,
+      primer: primer,
+    };
+    button.disabled = true;
+    const response = await apiFetchAsync(
+      `Decks/${app.deck.id}`,
+      "PUT",
+      requestDto,
+      true
+    );
+    button.disabled = false;
+    if (!response?.success) {
+      form.appendChild(errorDiv(response?.errors));
       return;
     }
-    const payLoad = parseJwt(accessToken);
-    if (payLoad.sub == app.deck.ownerId) {
-      document.querySelector(".deck-alter-group").removeAttribute("hidden");
-    }
+    location.reload();
   }
   function navBarStatus() {
     const header = document.querySelector("header");

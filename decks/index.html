@@ -21,7 +21,7 @@
     </header>
     <main>
       <div class="container">
-        <h1>Individual Deck</h1>
+        <h1>Loading Deck...</h1>
         <div class="btn-group deck-alter-group" hidden>
           <!-- Button to open the offcanvas sidebar -->
           <button
@@ -32,18 +32,93 @@
           >
             Add Cards
           </button>
-          <button type="button" class="btn btn-success">Edit Deck</button>
+          <button
+            type="button"
+            class="btn btn-success"
+            data-bs-toggle="modal"
+            data-bs-target="#editDeckModal"
+          >
+            Edit Deck
+          </button>
           <button
             type="button"
             class="btn btn-warning"
             data-bs-toggle="modal"
-            data-bs-target="#myModal"
+            data-bs-target="#deleteDeckModal"
           >
             Delete Deck
           </button>
         </div>
       </div>
+      <!-- Edit Deck Modal -->
+      <div class="modal fade" id="editDeckModal">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+              <h4 class="modal-title">Edit Deck</h4>
+            </div>
+            <!-- Modal body -->
+            <div class="modal-body">
+              <form id="edit-deck-form" class="edit-deck" action="">
+                <div class="mb-3">
+                  <label class="form-label" for="name">Deck Name: </label>
+                  <input
+                    id="name"
+                    class="form-control"
+                    name="name"
+                    type="text"
+                    required
+                  />
+                </div>
+                <div class="mb-3">
+                  <label class="form-check-label" for="private"
+                    >Private:
+                    <input
+                      id="private"
+                      class="form-check-input"
+                      name="private"
+                      type="checkbox"
+                  /></label>
+                </div>
+                <div class="mb-3 select-container">
+                  <label class="form-label" for="format">Format: </label>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" for="primer">Deck Primer: </label>
+                  <textarea
+                    id="primer"
+                    class="form-control"
+                    name="primer"
+                    rows="10"
+                  ></textarea>
+                </div>
+              </form>
+            </div>
 
+            <!-- Modal footer -->
+            <div class="modal-footer">
+              <!-- <div class="btn-group"> -->
+              <button
+                id="edit-deck"
+                form="edit-deck-form"
+                class="btn btn-warning"
+                type="submit"
+              >
+                Edit Deck
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Cancel
+              </button>
+              <!-- </div> -->
+            </div>
+          </div>
+        </div>
+      </div>
       <!-- Offcanvas Sidebar -->
       <div class="offcanvas offcanvas-start" id="demo">
         <div class="offcanvas-header">
@@ -66,8 +141,8 @@
           <div class="list-group results-list"></div>
         </div>
       </div>
-      <!-- The Modal -->
-      <div class="modal fade" id="myModal">
+      <!-- Delete Deck Modal -->
+      <div class="modal fade" id="deleteDeckModal">
         <div class="modal-dialog">
           <div class="modal-content">
             <!-- Modal Header -->
