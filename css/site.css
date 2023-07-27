@@ -92,6 +92,13 @@ a.personal-page-links:hover {
 .offcanvas-body a {
   font-size: 0.8rem;
 }
+.card {
+  display: inline-block;
+  max-width: 300px;
+}
+.card-body {
+  padding: 0;
+}
 
 @media screen and (max-width: 600px) {
   html {

@@ -9,7 +9,6 @@
   navBarStatus();
   setCopyrightDate();
 
-  // TODO: add appropriate startups for each page.
   app.index = async () => {};
 
   app.signinPage = async () => {
@@ -66,7 +65,7 @@
 
     const request = new Request(encodedURL, myOptions);
 
-    debugger;
+    // debugger;
     let rawResponse;
     try {
       rawResponse = await fetch(request);
@@ -81,15 +80,10 @@
       await refreshTokensAsync();
       return await apiFetchAsync(route, httpMethod, data, needsAuth);
     }
-    rawResponse.hasbody;
     try {
       return await rawResponse.json();
     } catch (error) {
-      //The only time this should happen is when there is no body to the response,
-      //which is only true if the api returned ok(), nocontent(), etc.
-      //Otherwise, the api sends back Response<T>.  In all cases, the request was successful.
-
-      // TODO: This isn't true, take some time to work through this and figure out how this SHOULD work.  There are
+      // TODO: take some time to work through this and figure out how this SHOULD work.  There are
       // several asp httpresponse helper methods that don't return a body, and .json() will error.  That has
       // nothing to do with whether or not the api fetch was successful.
       if (rawResponse.ok) {
@@ -336,21 +330,118 @@
       requestDto,
       true
     );
+
     if (!response.success) {
       document
         .querySelector(".offcanvas-body")
         .prepend(errorDiv(response.errors));
       return;
     }
-    console.log(response);
-    const div = document.querySelector("div.cards");
-    const newlyAddedCard = response.value;
-    const img = document.createElement("img");
-    img.src = newlyAddedCard.imageUris.normal;
-    img.alt = newlyAddedCard.name;
-    div.prepend(img);
+    app.deck.cards.push(response.value);
+    sortAndOrderDeckCards();
+    displayDeckCards();
+  }
 
-    //TODO: Make addCard update the page upon successful response.
+  async function editCardByDCId(e) {
+    e.preventDefault();
+    const target = e.target;
+    if (target.innerText == "+") {
+      const dcid = target.getAttribute("dcid");
+      addCardByDCId(dcid);
+      return;
+    }
+    if (target.innerText == "-") {
+      const dcid = target.getAttribute("dcid");
+      removeCardByDCId(dcid);
+      return;
+    }
+    if (target.tagName == "IMG") {
+      const dcid = target.getAttribute("dcid");
+      await getCardPrintings(dcid);
+    }
+  }
+
+  async function getCardPrintings(id) {
+    const index = app.deck.cards.findIndex((card) => card.deckCardId == id);
+    const card = app.deck.cards[index];
+    console.log(card.printsSearchUri);
+
+    try {
+      const rawResponse = await fetch(`${card.printsSearchUri}`);
+      return await rawResponse.json();
+    } catch (error) {
+      console.log(error);
+      return;
+    }
+  }
+
+  async function addCardByDCId(id) {
+    if (isNaN(id)) {
+      return;
+    }
+    const requestDto = {};
+    requestDto.deckCardId = id;
+    const response = await apiFetchAsync(
+      `decks/${app.deck.id}/cards`,
+      "POST",
+      requestDto,
+      true
+    );
+    if (!response.success) {
+      console.log("Add card not successful.");
+      return;
+    }
+    addCardQuantity(id);
+  }
+
+  async function removeCardByDCId(id) {
+    if (isNaN(id)) {
+      return;
+    }
+    const requestDto = {};
+    const response = await apiFetchAsync(
+      `decks/${app.deck.id}/cards/${id}`,
+      "DELETE",
+      requestDto,
+      true
+    );
+    if (!response.success) {
+      console.log("Remove card not successful.");
+      return;
+    }
+    removeCardQuantity(id);
+  }
+  function addCardQuantity(dcid) {
+    const card = app.deck.cards.find((card) => card.deckCardId == dcid);
+    card.quantity++;
+    document.querySelectorAll(`.qty${dcid}`).forEach((qty) => {
+      qty.innerText = card.quantity;
+    });
+  }
+  function removeCardQuantity(dcid) {
+    const card = app.deck.cards.find((card) => card.deckCardId == dcid);
+    card.quantity--;
+    if (card.quantity <= 0) {
+      document
+        .querySelectorAll(`.card${card.deckCardId}`)
+        .forEach((el) => el.remove());
+
+      for (const el of document.querySelector(".cards-container").children) {
+        if (el.childElementCount <= 1) {
+          el.remove();
+        }
+      }
+
+      app.deck.cards.splice(
+        app.deck.cards.findIndex((card) => card.deckCardId == dcid),
+        1
+      );
+      return;
+    }
+    const allCards = document.querySelectorAll(`.qty${dcid}`);
+    allCards.forEach((qty) => {
+      qty.innerText = card.quantity;
+    });
   }
   async function deleteDeckAsync() {
     console.log(app.deck.id);
@@ -358,7 +449,6 @@
     let response;
 
     button.disable = true;
-    // debugger;
     response = await apiFetchAsync(`decks/${app.deck.id}`, "DELETE", {}, true);
     button.disable = false;
 
@@ -449,35 +539,116 @@
   }
 
   function sortAndOrderDeckCards() {
-    const categories = [];
+    //TODO: This function does too much.
     app.deck.cards.forEach((card) => {
-      const superType = card.typeLine.split("—")[0];
-      const superTypesArray = superType.split(" ");
+      if (!card) {
+        return;
+      }
+      const superTypes = card.typeLine.split("—")[0];
+      const superTypesArray = superTypes.split(" ");
       superTypesArray.forEach((type) => {
-        if (!categories.includes(type)) {
-          categories.push(type);
+        if (type != "" && type != "Legendary") {
+          card.categories.push(type);
+          if (!app.deck.deckCategories.includes(type)) {
+            app.deck.deckCategories.push(type);
+          }
         }
       });
     });
+    app.deck.deckCategories.sort();
+    console.log(app.deck.deckCategories);
     app.deck.cards.sort(function (a, b) {
       return a.cmc - b.cmc;
     });
   }
   async function displayDeckCards() {
-    const categories = [];
-    const div = document.createElement("div");
-    div.classList.add("cards");
-    app.deck.cards.forEach((card, index) => {
-      //TODO: this is a test, change this to display cards.
-      setTimeout(() => {
-        console.log(card);
-        const img = document.createElement("img");
-        img.src = card.imageUris.normal;
-        img.alt = card.name;
-        div.append(img);
-      }, index * 150);
+    const cardsContainer = document.querySelector(".cards-container");
+    if (cardsContainer.innerHTML.trim() == "") {
+      cardsContainer.addEventListener("click", (e) => {
+        throttleClick(editCardByDCId, 1000, e);
+      });
+    }
+    cardsContainer.innerHTML = "";
+    // const newCardsContainer = document.createElement("section");
+    // newCardsContainer.classList.add("cards-container");
+    app.deck.deckCategories.forEach((cat) => {
+      const div = document.createElement("section");
+      div.classList.add(`${cat}`);
+
+      const catTitle = document.createElement("h3");
+      catTitle.innerText = cat;
+      div.append(catTitle);
+
+      app.deck.cards.forEach((card, index) => {
+        if (card.categories.includes(cat)) {
+          setTimeout(() => {
+            console.log(card);
+            const cardToAdd = createCardCard(card);
+            div.append(cardToAdd);
+          }, index * 150);
+        }
+      });
+      cardsContainer.append(div);
     });
-    document.querySelector("main").append(div);
+  }
+
+  function createCardCard(card) {
+    const bsCard = document.createElement("div");
+    bsCard.classList.add(
+      `card${card.deckCardId}`,
+      "card",
+      "container",
+      "px-1",
+      "pt-1",
+      "m-0",
+      "border",
+      "border-0"
+    );
+
+    const img = document.createElement("img");
+    img.src = card.imageUris.normal;
+    img.alt = card.name;
+    img.classList.add("card-img-top");
+    img.setAttribute("dcId", `${card.deckCardId}`);
+    bsCard.append(img);
+
+    const bsCardBody = document.createElement("div");
+    bsCardBody.classList.add("row");
+
+    const buttonGroup = document.createElement("div");
+    buttonGroup.classList.add("btn-group", "btn-group-sm", "pt-0", "mt-0");
+
+    const removeButton = document.createElement("button");
+    removeButton.classList.add("btn", "btn-success", "col", "pt-0", "mt-0");
+    removeButton.setAttribute("dcId", `${card.deckCardId}`);
+    removeButton.innerText = "-";
+    buttonGroup.append(removeButton);
+
+    const quantityDiv = document.createElement("button");
+    quantityDiv.classList.add(
+      "btn",
+      "btn-outline-success",
+      "col",
+      "pt-0",
+      "mt-0",
+      `qty${card.deckCardId}`
+    );
+    quantityDiv.setAttribute("disabled", "true");
+    quantityDiv.innerText = `${card.quantity}`;
+    buttonGroup.append(quantityDiv);
+
+    const addButton = document.createElement("button");
+    addButton.classList.add("btn", "btn-success", "col", "pt-0", "mt-0");
+    addButton.setAttribute("dcId", `${card.deckCardId}`);
+    addButton.innerText = "+";
+    buttonGroup.append(addButton);
+
+    bsCardBody.append(buttonGroup);
+
+    bsCardBody.classList.add("card-body");
+    bsCard.append(bsCardBody);
+
+    return bsCard;
   }
 
   async function getPersonalDecks() {
@@ -486,29 +657,6 @@
     const tableBody = table.querySelector("tbody");
 
     const response = await apiFetchAsync("Decks/Personal", "GET", {}, true);
-    // const response = {
-    //   success: true,
-    //   value: [
-    //     {
-    //       id: 1,
-    //       name: "Yidris Rocks",
-    //       format: "commander",
-    //       isPrivate: true,
-    //     },
-    //     {
-    //       id: 2,
-    //       name: "Xenagos",
-    //       format: "commander",
-    //       isPrivate: false,
-    //     },
-    //     {
-    //       id: 3,
-    //       name: "Gitrog",
-    //       format: "commander",
-    //       isPrivate: true,
-    //     },
-    //   ],
-    // };
 
     if (!response?.success) {
       const errorsDiv = errorDiv(response?.errors);
@@ -525,8 +673,6 @@
 
       const name = row.insertCell(0);
       const a = document.createElement("a");
-      //TODO: once the response is changed back so that it comes form the api
-      // check if deck.id or deck.Id works.
       a.href = `../decks/index.html?id=${deck.id}`;
       a.innerText = `${deck.name}`;
       a.classList.add("personal-page-links");
@@ -546,8 +692,6 @@
 
   async function getDeckAsync() {
     const params = new URLSearchParams(window.location.search);
-    //TODO: if link that was created in getPersonalDecks was changed to use deck.Id (capital I),
-    // make sure to change the params.get to "Id".
     const deckId = Number.parseInt(params.get("id"));
     if (isNaN(deckId)) {
       return;
@@ -574,13 +718,12 @@
       })
       .then((response) => {
         const names = Object.getOwnPropertyNames(response.legalities);
-        const selectContainer = document.querySelector(".select-container");
-
+        // const selectContainer = document.querySelector(".select-container");
+        const oldSelect = document.getElementById("format");
         const newSelect = document.createElement("select");
         newSelect.name = "format";
         newSelect.id = "format";
         newSelect.classList.add("form-select");
-        //continue figuring out how to check app.deck.format for the select attribute
         names.forEach((name) => {
           const option = document.createElement("option");
           option.value = name;
@@ -594,8 +737,7 @@
           }
           newSelect.append(option);
         });
-
-        selectContainer.append(newSelect);
+        oldSelect.innerHTML = newSelect.innerHTML;
       })
       .catch((err) => {
         console.log(err);
@@ -624,7 +766,6 @@
       form.appendChild(errorDiv(response?.errors));
       return;
     }
-    // TODO: When response is successfull, set location to the new deck.
     location.href = `../decks/index.html?id=${response.value.id}`;
   }
 
@@ -741,7 +882,6 @@
       refreshToken: refreshToken,
     };
   }
-  // function errorDiv(errors = ["Network connection error."]) {
   function errorDiv(errors = [""]) {
     const newDiv = document.createElement("div");
     errors.forEach((er) => {
@@ -754,7 +894,6 @@
     });
 
     newDiv.classList.add("alert");
-    // newDiv.classList.add("alert-danger");
     newDiv.classList.add("error-text");
     document.querySelectorAll(".error-text").forEach((el) => el.remove());
     setTimeout(() => {

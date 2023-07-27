@@ -49,6 +49,7 @@
             Delete Deck
           </button>
         </div>
+        <section class="cards-container"></section>
       </div>
       <!-- Edit Deck Modal -->
       <div class="modal fade" id="editDeckModal">
@@ -83,6 +84,11 @@
                 </div>
                 <div class="mb-3 select-container">
                   <label class="form-label" for="format">Format: </label>
+                  <select
+                    name="format"
+                    id="format"
+                    class="form-select"
+                  ></select>
                 </div>
                 <div class="mb-3">
                   <label class="form-label" for="primer">Deck Primer: </label>
@@ -105,7 +111,41 @@
                 class="btn btn-warning"
                 type="submit"
               >
-                Edit Deck
+                Save
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Cancel
+              </button>
+              <!-- </div> -->
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Change Printing Modal -->
+      <div class="modal fade" id="changePrintingModal">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+              <h4 class="modal-title">Change Printing</h4>
+            </div>
+            <!-- Modal body -->
+            <div class="container modal-body"></div>
+
+            <!-- Modal footer -->
+            <div class="modal-footer">
+              <!-- <div class="btn-group"> -->
+              <button
+                id="edit-deck"
+                form="edit-deck-form"
+                class="btn btn-warning"
+                type="submit"
+              >
+                Save
               </button>
               <button
                 type="button"
