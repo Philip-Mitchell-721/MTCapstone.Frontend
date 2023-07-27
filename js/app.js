@@ -68,13 +68,17 @@
     // debugger;
     let rawResponse;
     try {
+      document.body.style.cursor = "wait";
       rawResponse = await fetch(request);
     } catch (error) {
+      document.body.style.cursor = "default";
+
       return {
         errors: [`${error.message}`],
         success: false,
       };
     }
+    document.body.style.cursor = "default";
 
     if (needsAuth && rawResponse.status == 401) {
       await refreshTokensAsync();
@@ -323,7 +327,6 @@
 
     const requestDto = {};
     requestDto.scryfallId = card.id;
-    console.log(app.deck.id);
     const response = await apiFetchAsync(
       `decks/${app.deck.id}/cards`,
       "POST",
@@ -357,18 +360,94 @@
     }
     if (target.tagName == "IMG") {
       const dcid = target.getAttribute("dcid");
-      await getCardPrintings(dcid);
+      const printings = await getCardPrintings(dcid);
+      setUpPrintingsModal(dcid, printings);
+      openPrintingsModal();
     }
   }
 
+  function setUpPrintingsModal(dcid, printings) {
+    const modalBody = document.querySelector(
+      "#changePrintingModal .modal-body"
+    );
+    if (modalBody.innerHTML.trim() == "") {
+      modalBody.addEventListener("click", (e) => {
+        throttleClick(changePrinting, 1000, e);
+      });
+    }
+    modalBody.innerHTML = "";
+    const newBody = document.createElement("div");
+    printings.forEach((printing) => {
+      if (
+        printing.prices.usd ||
+        printing.prices.usd_foil ||
+        printing.prices.usd_etched ||
+        printing.prices.tix
+      ) {
+        const img = document.createElement("img");
+        img.setAttribute("sfid", `${printing.id}`);
+        img.setAttribute("dcid", `${dcid}`);
+        img.src = `${printing.image_uris.normal}`;
+        img.alt = `Released: ${printing.released_at}, Set: ${printing.set_name}`;
+        img.classList.add("p-1", "img-thumbnail", "card");
+        newBody.append(img);
+      }
+    });
+    modalBody.innerHTML = newBody.innerHTML;
+  }
+  async function changePrinting(e) {
+    e.preventDefault();
+    const target = e.target;
+    if (!target.tagName == "IMG") {
+      return;
+    }
+    const dcid = target.getAttribute("dcid");
+    const sfid = target.getAttribute("sfid");
+
+    if (app.deck.cards.find((card) => card.scryfallId == sfid)) {
+      closePrintingsModal();
+      return;
+    }
+    const response = await apiFetchAsync(
+      `decks/${app.deck.id}/cards/${dcid}`,
+      "PUT",
+      `${sfid}`,
+      true
+    );
+
+    if (!response.success) {
+      document
+        .querySelector("#changePrintingModal .modal-header")
+        .prepend(errorDiv(response.errors));
+      return;
+    }
+    app.deck.cards.splice(
+      app.deck.cards.findIndex((card) => card.deckCardId == `${dcid}`),
+      1,
+      response.value
+    );
+    sortAndOrderDeckCards();
+    displayDeckCards();
+    closePrintingsModal();
+  }
+  function closePrintingsModal() {
+    const modalEl = document.getElementById("changePrintingModal");
+    const modal = bootstrap.Modal.getInstance(modalEl);
+    modal.hide();
+  }
+  function openPrintingsModal() {
+    app.printingModal = new bootstrap.Modal(
+      document.querySelector("#changePrintingModal")
+    ).show();
+  }
   async function getCardPrintings(id) {
     const index = app.deck.cards.findIndex((card) => card.deckCardId == id);
     const card = app.deck.cards[index];
-    console.log(card.printsSearchUri);
 
     try {
       const rawResponse = await fetch(`${card.printsSearchUri}`);
-      return await rawResponse.json();
+      const response = await rawResponse.json();
+      return response.data;
     } catch (error) {
       console.log(error);
       return;
@@ -444,7 +523,6 @@
     });
   }
   async function deleteDeckAsync() {
-    console.log(app.deck.id);
     const button = document.querySelector("button.delete-deck");
     let response;
 
@@ -556,7 +634,6 @@
       });
     });
     app.deck.deckCategories.sort();
-    console.log(app.deck.deckCategories);
     app.deck.cards.sort(function (a, b) {
       return a.cmc - b.cmc;
     });
@@ -582,7 +659,6 @@
       app.deck.cards.forEach((card, index) => {
         if (card.categories.includes(cat)) {
           setTimeout(() => {
-            console.log(card);
             const cardToAdd = createCardCard(card);
             div.append(cardToAdd);
           }, index * 150);

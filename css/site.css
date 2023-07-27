@@ -99,6 +99,14 @@ a.personal-page-links:hover {
 .card-body {
   padding: 0;
 }
+.card img,
+img.card {
+  cursor: pointer;
+}
+img.card:hover {
+  border-width: 3px;
+  border-color: rgb(8, 82, 17);
+}
 
 @media screen and (max-width: 600px) {
   html {
