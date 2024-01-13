@@ -1,192 +1,192 @@
 body {
-  margin: auto;
-  background-color: rgba(0, 0, 0, 0.05);
-  max-width: 1440px;
+	margin: auto;
+	background-color: rgba(0, 0, 0, 0.05);
+	max-width: 1440px;
 }
 main {
-  background-color: white;
-  padding: 1px 5%;
-  min-height: 100vh;
+	background-color: white;
+	padding: 1px 5%;
+	min-height: 100vh;
 }
 
 header {
-  background-color: rgb(21, 115, 71);
-  text-align: right;
-  padding: 0.5rem;
+	background-color: rgb(21, 115, 71);
+	text-align: right;
+	padding: 0.5rem;
 }
 nav {
-  color: white;
+	color: white;
 }
 nav a {
-  text-decoration: none;
-  color: white;
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
+	text-decoration: none;
+	color: white;
+	padding-left: 0.5rem;
+	padding-right: 0.5rem;
 }
 nav a:hover {
-  text-decoration: underline;
+	text-decoration: underline;
 }
 input,
 select {
-  font-size: 1rem;
+	font-size: 1rem;
 }
 button {
-  font-size: 0.75rem;
-  padding: 0.25rem;
-  margin: 0.25rem 0;
+	font-size: 0.75rem;
+	padding: 0.25rem;
+	margin: 0.25rem 0;
 }
 
 footer {
-  background-color: rgb(8, 82, 17);
-  color: white;
-  font-size: 0.7rem;
-  text-align: center;
-  padding: 0.5rem;
+	background-color: rgb(8, 82, 17);
+	color: white;
+	font-size: 0.7rem;
+	text-align: center;
+	padding: 0.5rem;
 }
 
 .center-forms {
-  display: grid;
-  justify-items: center;
-  padding-bottom: 5%;
+	display: grid;
+	justify-items: center;
+	padding-bottom: 5%;
 }
 
 .center-forms form {
-  display: grid;
+	display: grid;
 }
 .center-forms a {
-  text-decoration: none;
-  color: rgb(74, 74, 74);
-  font-size: 0.75rem;
+	text-decoration: none;
+	color: rgb(74, 74, 74);
+	font-size: 0.75rem;
 }
 .center-forms a:hover {
-  text-decoration: underline;
+	text-decoration: underline;
 }
 
 .center-forms label {
-  padding-top: 0.3rem;
+	padding-top: 0.3rem;
 }
 .error-text {
-  text-align: center;
-  color: black;
-  background-color: #ffbaba;
-  border: 2px solid black;
-  margin: 0;
-  padding: 0;
-  max-width: 500px;
-  display: inline-block;
+	text-align: center;
+	color: black;
+	background-color: #ffbaba;
+	border: 2px solid black;
+	margin: 0;
+	padding: 0;
+	max-width: 500px;
+	display: inline-block;
 }
 .error-text p {
-  margin: 10px 20px;
+	margin: 10px 20px;
 }
 .form-container {
-  display: flex;
-  flex-wrap: nowrap;
+	display: flex;
+	flex-wrap: nowrap;
 }
 .personal-page-links {
-  text-decoration: none;
-  color: rgb(8, 82, 17);
+	text-decoration: none;
+	color: rgb(8, 82, 17);
 }
 a.personal-page-links:hover {
-  text-decoration: underline;
+	text-decoration: underline;
 }
 .offcanvas-body a {
-  font-size: 0.8rem;
+	font-size: 0.8rem;
 }
 .card {
-  display: inline-block;
-  max-width: 300px;
+	display: inline-block;
+	max-width: 300px;
 }
 .card-body {
-  padding: 0;
+	padding: 0;
 }
 .card img,
 img.card {
-  cursor: pointer;
+	cursor: pointer;
 }
 img.card:hover {
-  border-width: 3px;
-  border-color: rgb(8, 82, 17);
+	border-width: 3px;
+	border-color: rgb(8, 82, 17);
 }
 
 @media screen and (max-width: 600px) {
-  html {
-    font-size: 16px;
-  }
+	html {
+		font-size: 16px;
+	}
 }
 
 @media screen and (min-width: 601px) and (max-width: 767px) {
-  html {
-    font-size: 16px;
-  }
+	html {
+		font-size: 16px;
+	}
 }
 
 @media screen and (min-width: 768px) and (max-width: 991px) {
-  html {
-    font-size: 20px;
-  }
-  header {
-    font-size: 0.9rem;
-  }
+	html {
+		font-size: 20px;
+	}
+	header {
+		font-size: 0.9rem;
+	}
 }
 
 @media screen and (min-width: 992px) and (max-width: 1199px) {
-  html {
-    font-size: 24px;
-  }
-  header {
-    font-size: 0.8rem;
-  }
+	html {
+		font-size: 24px;
+	}
+	header {
+		font-size: 0.8rem;
+	}
 }
 
 @media screen and (min-width: 1200px) {
-  html {
-    font-size: 28px;
-  }
-  header {
-    font-size: 0.7rem;
-  }
+	html {
+		font-size: 28px;
+	}
+	header {
+		font-size: 0.7rem;
+	}
 }
 @media print {
-  *,
-  *::before,
-  *::after {
-    background: white !important;
-    color: black !important;
-    box-shadow: none !important;
-    text-shadow: none !important;
-  }
+	*,
+	*::before,
+	*::after {
+		background: white !important;
+		color: black !important;
+		box-shadow: none !important;
+		text-shadow: none !important;
+	}
 
-  @page {
-    margin: 1in;
-    size: letter portrait;
-  }
-  html {
-    font-size: 15px;
-  }
-  h1 {
-    font-size: 2rem;
-  }
-  h2 {
-    font-size: 1.25rem;
-  }
+	@page {
+		margin: 1in;
+		size: letter portrait;
+	}
+	html {
+		font-size: 15px;
+	}
+	h1 {
+		font-size: 2rem;
+	}
+	h2 {
+		font-size: 1.25rem;
+	}
 
-  a {
-    text-decoration: none;
-  }
-  a[href]::after {
-    content: " (" attr(href) ")";
-  }
-  header,
-  footer {
-    display: none;
-  }
-  .one-px-padding-top {
-    display: grid;
-    grid-template-columns: 1;
-    grid-template-rows: 2;
-    justify-items: center;
-  }
-  #work-item-img {
-    max-height: 300px;
-  }
+	a {
+		text-decoration: none;
+	}
+	a[href]::after {
+		content: " (" attr(href) ")";
+	}
+	header,
+	footer {
+		display: none;
+	}
+	.one-px-padding-top {
+		display: grid;
+		grid-template-columns: 1;
+		grid-template-rows: 2;
+		justify-items: center;
+	}
+	#work-item-img {
+		max-height: 300px;
+	}
 }
